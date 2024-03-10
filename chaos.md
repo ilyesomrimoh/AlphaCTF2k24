@@ -39,13 +39,13 @@ AES (Advanced Encryption Standard) is a widely-used encryption algorithm that us
 
 To decrypt a message encrypted with AES (Advanced Encryption Standard), you need to know the key and the Initialization Vector (IV). The challenge provides the IV in the code, so the goal is to determine the key used.
 
-The key is generated using Python's random library. Initially, it generates 99 numbers of 256 bits, and the 100th value is the key used.
+The key is generated using Python's random library. Initially, it generates 100 numbers of 256 bits, and the 101th value is the key used.
 
 After some research, it was found that the random library in Python uses a pseudo-random number generator (PRNG) to generate numbers, which are not truly random. The library takes a seed and uses it to generate numbers.
 
 To find the key, we can use a tool or method to predict the state or seed used by the PRNG. One such tool is randcrack, which can take 624 32-bit numbers to find the state and predict the next numbers.
 
-The challenge is that we only have 99 numbers of 256 bits, but we need 624 32-bit numbers. To address this, we convert each 256-bit number into 8 32-bit numbers using a simple calculation:
+The challenge is that we only have 100 numbers of 256 bits, but we need 624 32-bit numbers. To address this, we convert each 256-bit number into 8 32-bit numbers using a simple calculation:
 
 ```python
 v_32 = []
@@ -54,7 +54,7 @@ for num in range(len(values)):
         v_32.append((values[num] >> (j * 32)) & 0xFFFFFFFF)
 ```
 
-Once we have 800 32-bit numbers from the 99 256-bit numbers, we can feed them to randcrack, which only needs 624 numbers:
+Once we have 800 32-bit numbers from the 100 256-bit numbers, we can feed them to randcrack, which only needs 624 numbers:
 
 ```python
 rc = randcrack.RandCrack()
@@ -65,60 +65,6 @@ for num in v_32:
         break
     counter += 1
     rc.submit(num)
-```
-
-
-
-Here's the revised text in Markdown format:
-
-markdown
-Copy code
-## Decrypting AES Encrypted Message in the Challenge
-
-To decrypt a message encrypted with AES (Advanced Encryption Standard), you need to know the key and the Initialization Vector (IV). The challenge provides the IV in the code, so the goal is to determine the key used.
-
-The key is generated using Python's random library. Initially, it generates 99 numbers of 256 bits, and the 100th value is the key used.
-
-After some research, it was found that the random library in Python uses a pseudo-random number generator (PRNG) to generate numbers, which are not truly random. The library takes a seed and uses it to generate numbers.
-
-To find the key, we can use a tool or method to predict the state or seed used by the PRNG. One such tool is randcrack, which can take 624 32-bit numbers to find the state and predict the next numbers.
-
-The challenge is that we only have 99 numbers of 256 bits, but we need 624 32-bit numbers. To address this, we convert each 256-bit number into 8 32-bit numbers using a simple calculation:
-
-```python
-v_32 = []
-for num in range(len(values)):
-    for j in range(256 // 32):
-        v_32.append((values[num] >> (j * 32)) & 0xFFFFFFFF)
-```
-Once we have 800 32-bit numbers from the 99 256-bit numbers, we can feed them to randcrack, which only needs 624 numbers:
-
-```python
-rc = randcrack.RandCrack()
-
-counter = 0
-for num in v_32:
-    if counter == 624:
-        break
-    counter += 1
-    rc.submit(num)
-Then, we can print the next values to validate the predictions:
-```
-``` python
-for i in range(624, 800, 1):
-    print(i, rc.predict_getrandbits(32), v_32[i])
-After that, we can predict the key, which is the next 256-bit value, and decrypt the flag:
-```
-``` python
-
-key = rc.predict_getrandbits(256).to_bytes(32, 'little')
-print("key is: ", key)
-iv = b"alpha_gift_for_u"
-dec_flag = 407233892575130114622365471152848476992260719477162766601742037494600998779015057202013660718343213377246033388142835468677928608741241395870321712036437
-
-cipher = AES.new(key, AES.MODE_CBC, iv)
-flag = cipher.decrypt(pad(long_to_bytes(dec_flag), AES.block_size))
-print(f'flag={flag}')
 ```
 
 # the final code
